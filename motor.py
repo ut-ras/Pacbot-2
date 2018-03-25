@@ -65,47 +65,75 @@ class Base:
         self.motorLeft = Motor(LEFT_PIN_1, LEFT_PIN_2, LEFT_PIN_PWM, 2)
         self.motorRight = Motor(RIGHT_PIN_1, RIGHT_PIN_2, RIGHT_PIN_PWM, 3)
 
+    def move_dir_time(self, x_percent_speed, y_percent_speed, time_sec):
+        self.move_dir(x_percent_speed, y_percent_speed)
+        time.sleep(time_sec)
+        self.stop()
+
+    def move_dir(self, x_percent_speed, y_percent_speed):
+        if x_percent_speed < 0:
+            self.motorTop.set_motor(1)
+            self.motorBottom.set_motor(-1)
+        elif x_percent_speed > 0:
+            self.motorTop.set_motor(-1)
+            self.motorBottom.set_motor(1)
+        else:
+            self.motorTop.set_motor(0)
+            self.motorBottom.set_motor(0)
+        self.motorTop.set_speed(x_percent_speed)
+        self.motorBottom.set_speed(x_percent_speed)
+
+        if y_percent_speed < 0:
+            self.motorLeft.set_motor(1)
+            self.motorRight.set_motor(-1)
+        elif y_percent_speed > 0:
+            self.motorLeft.set_motor(-1)
+            self.motorRight.set_motor(1)
+        else:
+            self.motorLeft.set_motor(0)
+            self.motorRight.set_motor(0)
+        self.motorLeft.set_speed(y_percent_speed)
+        self.motorRight.set_speed(y_percent_speed)
+
     def move(self, direction, percent_speed):
         if direction == 'left':
-            self.motorTop.set_motor(1)
-            self.motorLeft.set_motor(0)
-            self.motorBottom.set_motor(-1)
-            self.motorRight.set_motor(0)
-
             self.motorTop.set_speed(percent_speed)
             self.motorBottom.set_speed(percent_speed)
+
+            self.motorRight.set_motor(0)
+            self.motorLeft.set_motor(0)
+            self.motorTop.set_motor(1)
+            self.motorBottom.set_motor(-1)
 
         elif direction == 'right':
-            self.motorTop.set_motor(-1)
-            self.motorLeft.set_motor(0)
-            self.motorBottom.set_motor(1)
-            self.motorRight.set_motor(0)
-
             self.motorTop.set_speed(percent_speed)
             self.motorBottom.set_speed(percent_speed)
 
+            self.motorLeft.set_motor(0)
+            self.motorRight.set_motor(0)
+            self.motorTop.set_motor(-1)
+            self.motorBottom.set_motor(1)
+
         elif direction == 'up':
+            self.motorLeft.set_speed(percent_speed)
+            self.motorRight.set_speed(percent_speed)
+
             self.motorTop.set_motor(0)
-            self.motorLeft.set_motor(1)
             self.motorBottom.set_motor(0)
+            self.motorLeft.set_motor(1)
             self.motorRight.set_motor(-1)
 
-            self.motorLeft.set_speed(percent_speed)
-            self.motorRight.set_speed(percent_speed)
-
         elif direction == 'down':
-            self.motorTop.set_motor(0)
-            self.motorLeft.set_motor(-1)
-            self.motorBottom.set_motor(0)
-            self.motorRight.set_motor(1)
-
             self.motorLeft.set_speed(percent_speed)
             self.motorRight.set_speed(percent_speed)
+
+            self.motorTop.set_motor(0)
+            self.motorBottom.set_motor(0)
+            self.motorLeft.set_motor(-1)
+            self.motorRight.set_motor(1)
 
         else:
             raise ValueError('Invalid move direction')
-
-
 
     def stop(self):
         self.motorTop.set_motor(0)
@@ -116,55 +144,3 @@ class Base:
     def disable(self):
         PWM.cleanup()
         RPIO.cleanup()
-
-
-base = Base()
-
-# base.move('left', 50)
-# time.sleep(1)
-# base.stop()
-#
-# base.move('down', 50)
-# time.sleep(1)
-# base.stop()
-#
-# base.move('right', 50)
-# time.sleep(1)
-# base.stop()
-#
-# base.move('up', 50)
-# time.sleep(1)
-# base.stop()
-
-
-
-# base.motorTop.set_motor(1)
-# base.motorTop.set_speed(60)
-# time.sleep(1)
-# base.motorTop.set_motor(0)
-# base.motorLeft.set_motor(1)
-# base.motorLeft.set_speed(60)
-# time.sleep(1)
-# base.motorLeft.set_motor(0)
-# base.motorBottom.set_motor(1)
-# base.motorBottom.set_speed(60)
-# time.sleep(1)
-# base.motorBottom.set_motor(0)
-# base.motorRight.set_motor(1)
-# base.motorRight.set_speed(60)
-# time.sleep(1)
-# base.motorRight.set_motor(0)
-# base.disable()
-
-
-base.motorTop.set_motor(1)
-base.motorTop.set_speed(60)
-base.motorLeft.set_motor(1)
-base.motorLeft.set_speed(60)
-base.motorBottom.set_motor(-1)
-base.motorBottom.set_speed(60)
-base.motorRight.set_motor(-1)
-base.motorRight.set_speed(60)
-time.sleep(5)
-base.stop()
-base.disable()
