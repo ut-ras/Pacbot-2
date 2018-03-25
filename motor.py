@@ -80,8 +80,8 @@ class Base:
         else:
             self.motorTop.set_motor(0)
             self.motorBottom.set_motor(0)
-        self.motorTop.set_speed(x_percent_speed)
-        self.motorBottom.set_speed(x_percent_speed)
+        self.motorTop.set_speed(abs(x_percent_speed))
+        self.motorBottom.set_speed(abs(x_percent_speed))
 
         if y_percent_speed < 0:
             self.motorLeft.set_motor(1)
@@ -92,8 +92,8 @@ class Base:
         else:
             self.motorLeft.set_motor(0)
             self.motorRight.set_motor(0)
-        self.motorLeft.set_speed(y_percent_speed)
-        self.motorRight.set_speed(y_percent_speed)
+        self.motorLeft.set_speed(abs(y_percent_speed))
+        self.motorRight.set_speed(abs(y_percent_speed))
 
     def move(self, direction, percent_speed):
         if direction == 'left':
