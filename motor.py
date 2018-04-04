@@ -26,9 +26,6 @@ RIGHT_PIN_PWM = 17
 RIGHT_ENC_A = 0
 RIGHT_ENC_B = 0
 
-# non blocking interrupt enable
-RPIO.wait_for_interrupts(threaded=True)
-
 
 class Motor:
     def __init__(self, pin1, pin2, pwm_pin, encA, encB, dma_channel=0):
@@ -52,7 +49,7 @@ class Motor:
             edge='rising',
             threaded_callback=True)  # todo: see if this makes a difference
 
-    def encCallback(self):
+    def encCallback(self, gpioID, val):
         if RPIO.input(self.encB):
             self.ticks += 1
         else:
@@ -75,12 +72,12 @@ class Motor:
             elif newsign == 1:
                 RPIO.output(self.pin2, False)
                 RPIO.output(self.pin1, True)
-        self.set_speed(abs(self.speed * 100))
+        self.set_speed(abs(self.speed))
 
     def set_speed(self, speed):
         """adds a pwm pulse for the given speed in range [-1,1]"""
-        PWM.add_channel_pulse(self.dma_channel, self.pwm_pin, start=0, width=(
-            speed * PWM.get_channel_subcycle_time_us(self.dma_channel)) // 10)
+        PWM.add_channel_pulse(self.dma_channel, self.pwm_pin, start=0, width=int(
+            speed * PWM.get_channel_subcycle_time_us(self.dma_channel) / 10))
 
     def __str__(self):
         return "Speed: " + str(self.speed) + "\t\tTicks: " + str(self.ticks)
@@ -124,3 +121,4 @@ class Base:
         self.stop()
         PWM.cleanup()
         RPIO.cleanup()
+
