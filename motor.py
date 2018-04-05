@@ -26,6 +26,8 @@ RIGHT_PIN_PWM = 17
 RIGHT_ENC_A = 0
 RIGHT_ENC_B = 0
 
+RPIO.cleanup()
+PWM.cleanup()
 
 class Motor:
     def __init__(self, pin1, pin2, pwm_pin, encA, encB, dma_channel=0):
@@ -42,18 +44,21 @@ class Motor:
         RPIO.setup(pwm_pin, RPIO.OUT)
         RPIO.setup(pin1, RPIO.OUT)
         RPIO.setup(pin2, RPIO.OUT)
+        RPIO.setup(encA, RPIO.IN)
         RPIO.setup(encB, RPIO.IN)
-        RPIO.add_interrupt_callback(
-            encA,
-            self.encCallback,
-            edge='rising',
-            threaded_callback=True)  # todo: see if this makes a difference
+        #  RPIO.add_interrupt_callback(
+        #      encA,
+        #      self.encCallback,
+        #      edge='rising',
+        #      threaded_callback=False)  # todo: see if this makes a difference
 
     def encCallback(self, gpioID, val):
-        if RPIO.input(self.encB):
+        temp = RPIO.input(self.encB)
+        if temp:
             self.ticks += 1
         else:
-            self.ticks -= 1
+            self.ticks += 1
+        #  print(self.ticks)
 
     def set(self, speed):
         """manipulates hardware to turn at given speed in range [-1,1] (positive
