@@ -71,19 +71,62 @@ static PyObject* init_stuff(PyObject* self, PyObject* args) {
     pullUpDnControl(PIN1, PUD_UP);
     pullUpDnControl(PIN2, PUD_UP);
 
-    if ( wiringPiISR (PIN1, INT_EDGE_BOTH, &pin_isr) < 0 ) {
+    if (wiringPiISR (PIN1, INT_EDGE_BOTH, &pin_isr) < 0) {
         return Py_BuildValue("i", -1);
     }
 
-    if ( wiringPiISR (PIN2, INT_EDGE_BOTH, &pin_isr) < 0 ) {
+    if (wiringPiISR (PIN2, INT_EDGE_BOTH, &pin_isr) < 0) {
         return Py_BuildValue("i", -1);
     }
+
+    /* Build the output tuple */
+    PyObject *ret = Py_BuildValue("d", 8);
+    return ret;
+
 }
 
 static PyObject* getTicks(PyObject* self, PyObject* args) {
     return Py_BuildValue("i", pos);
 }
 
+static PyMethodDef encMethods[] = {
+    {"init_stuff", init_stuff, METH_VARARGS, NULL},
+    {"getTicks", getTicks, METH_VARARGS, NULL}
+};
+
+static struct PyModuleDef encmodule = {
+    PyModuleDef_HEAD_INIT,
+    "enc",
+    NULL,
+    -1,
+    encMethods
+};
+
+PyMODINIT_FUNC PyInit_enc(void)
+{
+    return PyModule_Create(&encmodule);
+}
+
+int main(int argc, char *argv[])
+{
+    wchar_t *program = Py_DecodeLocale(argv[0], NULL);
+
+    if (program == NULL) {
+        fprintf(stderr, "RIP");
+        exit(1);
+    }
+
+    PyImport_AppendInittab("enc", PyInit_enc);
+
+    Py_SetProgramName(program);
+
+    Py_Initialize();
+
+    PyImport_ImportModule("enc");
+
+    PyMem_RawFree(program);
+    return 0;
+}
 // int main(int argc, const char* argv[]) {
 //     // Show position every second
 //     while ( 1 ) {

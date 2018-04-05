@@ -1,7 +1,7 @@
 #  import RPIO
 import time
 #  import wiringpi
-import cenc
+import enc as cenc
 
 cenc.init_stuff()
 
