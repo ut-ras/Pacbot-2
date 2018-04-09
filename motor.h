@@ -15,6 +15,8 @@ Motor* createMotor(int m1, int m2, int pwm, int encA, int encB);
 // Speed is in range [-1,1]
 void setMotor(Motor* m, float speed);
 
+void stopMotor(Motor* m);
+
 void destroyMotor(Motor* Motor);
 
 #endif

@@ -19,17 +19,26 @@ Motor* createMotor(int m1, int m2, int pwm, int encA, int encB) {
 }
 
 void setMotor(Motor* m, float speed) {
+    if(!m) {
+        return;
+    }
     if(speed > 0) {
         gpioWrite(m->m1, 1);
         gpioWrite(m->m2, 0);
     } else if(speed < 0) {
         gpioWrite(m->m1, 0);
         gpioWrite(m->m2, 1);
-    } else {
-        gpioWrite(m->m1, 0);
-        gpioWrite(m->m2, 0);
     }
     gpioPWM(m->pwm, fabs(speed) * gpioGetPWMrange(m->pwm));
+}
+
+void stopMotor(Motor* m) {
+    if(!m) {
+        return;
+    }
+    setMotor(m, 0);
+    gpioWrite(m->m1, 0);
+    gpioWrite(m->m2, 0);
 }
 
 void destroyMotor(Motor* m) {

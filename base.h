@@ -10,6 +10,8 @@ void drive(float x, float y);
 
 void spin(float speed);
 
+void stop();
+
 void terminateBase();
 
 #endif
