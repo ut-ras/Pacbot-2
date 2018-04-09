@@ -1,8 +1,6 @@
 #ifndef ENC_H
 #define ENC_H
 
-typedef void (*enc_cb_t)(int);
-
 struct Enc {
     int encA;
     int encB;
