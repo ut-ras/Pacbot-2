@@ -19,15 +19,14 @@ void setPID(PID* controller, float set) {
     controller->prev = 0;
 }
 
-//todo: see if dt is a good idea
 float updatePID(PID* controller, float current, float dt) {
     float err = controller->goal - current;
     float temp = controller->prev;
     controller->sum += err * dt;
     controller->sum = MIN(MAX(controller->sum, -MAX_SUM), MAX_SUM);
-    controller->prev = current;
+    controller->prev = err;
     // printf("%f\t\t%f\n", controller->kI * controller->sum, controller->kD * (current - temp) / dt);
     return controller->kP * err +
            controller->kI * controller->sum +
-           controller->kD * (current - temp) / dt;
+           controller->kD * (err - temp) / dt;
 }

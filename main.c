@@ -71,7 +71,7 @@ int main(int argc, char* argv[]) {
     if (gpioInitialise() < 0) {
         return 1;
     }
-    controller = createPID(.005, 0, 0);
+    controller = createPID(.01, .0001, .0005);
     m = createMotor(17, 27, 22, 24, 23);
     int setPoint = 0;
 
