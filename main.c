@@ -7,7 +7,6 @@
 #include "enc.h"
 #include "pid.h"
 
-int dur = 4;
 float test_speed = .5;
 
 void cleanup() {
@@ -40,7 +39,7 @@ void testBase() {
     // testIndividualMotor(right);
     initBase(top, bottom, NULL, NULL);
     printEncoders();
-    for(int i = 0; i < dur; ++i) {
+    for(int i = 0; i < 4; ++i) {
         spin(test_speed);
         time_sleep(1);
         stop();
@@ -51,13 +50,13 @@ void testBase() {
     cleanup();
 }
 
-PID controller;
+PID* controller;
 Motor* m;
-int elapsed = 50;
+float dt = .05;
 float maxSpeed = .6;
 
 void pidCB() {
-    float next = updatePID(&controller, m->enc->pos, ((float)elapsed) / 1000.f);
+    float next = updatePID(controller, m->enc->pos, dt);
     if(next > maxSpeed) {
         next = maxSpeed;
     } else if(next < -maxSpeed) {
@@ -71,21 +70,22 @@ int main(int argc, char* argv[]) {
     if (gpioInitialise() < 0) {
         return 1;
     }
-    controller = createPID(.01, .0001, .0005);
+    controller = createPID(.01, .0001, .0005, "data.txt");
     m = createMotor(17, 27, 22, 24, 23);
     int setPoint = 0;
 
     testIndividualMotor(m);
     m->enc->pos = 0;
-    setPID(&controller, setPoint);
-    gpioSetTimerFunc(0, elapsed, pidCB);
-    while(setPoint >= 0) {
-        setPID(&controller, setPoint);
-        printf("Input next set point (negative to exit): ");
+    setPID(controller, setPoint);
+    gpioSetTimerFunc(0, dt * 1000, pidCB);
+    while(setPoint != -1) {
+        setPID(controller, setPoint);
+        printf("Input next set point (-1 to exit): ");
         scanf("%d", &setPoint);
     }
     stopMotor(m);
     destroyMotor(m);
+    destroyPID(controller);
     return 0;
 }
 

@@ -43,6 +43,7 @@ void stopMotor(Motor* m) {
 
 void destroyMotor(Motor* m) {
     if(m) {
+        stopMotor(m);
         destroyEnc(m->enc);
         free(m);
     }
