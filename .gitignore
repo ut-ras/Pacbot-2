@@ -1,5 +1,6 @@
 # log files
 *.txt
+*.axf
 
 ### C ###
 # Prerequisites
