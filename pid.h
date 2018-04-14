@@ -3,12 +3,12 @@
 #include <stdio.h>
 
 struct PID {
-    float goal;
-    float prev;
-    float sum;
-    float kP;
-    float kI;
-    float kD;
+    double goal;
+    double prev;
+    double sum;
+    double kP;
+    double kI;
+    double kD;
     char* logName;
     FILE* logFile;
 };
@@ -16,10 +16,12 @@ struct PID {
 typedef struct PID PID;
 
 // Pass NULL as logName to not log
-PID* createPID(float p, float i, float d, char* logName);
+PID* createPID(double p, double i, double d, char* logName);
 
-void setPID(PID* controller, float set);
+void setPID(PID* controller, double set);
 
-float updatePID(PID* controller, float current, float dt);
+double updatePID(PID* controller, double current, double dt);
+
+void destroyPID(PID*);
 
 #endif

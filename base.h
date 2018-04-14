@@ -6,9 +6,9 @@ void initBase(Motor* t, Motor* b, Motor* l, Motor* r);
 
 void printEncoders();
 
-void drive(float x, float y);
+void drive(double x, double y);
 
-void spin(float speed);
+void spin(double speed);
 
 void stop();
 

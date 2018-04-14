@@ -27,13 +27,17 @@ while current:
     while len(points) > 5 and points[-1][1] == points[-3][1]:
         del(points[-1])
 
+    del points[0]
     x = np.array([i[0] for i in points])
-    y = np.array([i[1] for i in points])
+    y = []
+    for i in range(1, len(points[0])):
+        y.append([j[i] for j in points])
     #  Interpolation is fun and pretty but we kind of want exact data for tuning
-    prettyX = np.linspace(x.min(), x.max(), 300)  # number of points to interpolate
-    prettyY = spline(x, y, prettyX)
+    #  prettyX = np.linspace(x.min(), x.max(), 300)  # number of points to interpolate
+    #  prettyY = spline(x, y, prettyX)
     plt.tight_layout()
-    #  plt.plot(x, y)
-    plt.plot(prettyX, prettyY)
+    for i in y:
+        plt.plot(x, i)
+    plt.legend(["P", "I", "D", "Output"])
+    #  plt.plot(prettyX, prettyY)
     plt.show()
-

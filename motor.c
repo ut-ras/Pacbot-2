@@ -13,21 +13,27 @@ Motor* createMotor(int m1, int m2, int pwm, int encA, int encB) {
     gpioSetMode(m1, PI_OUTPUT);
     gpioSetMode(m2, PI_OUTPUT);
     gpioSetMode(pwm, PI_OUTPUT);
-    gpioSetPWMfrequency(pwm, 100);   // lower freq gives lower min speed
+    gpioSetPWMfrequency(pwm, 440);   // lower freq gives lower min speed
     gpioSetPWMrange(pwm, 1000);      // not sure why we'd want a small range
     return m;
 }
 
-void setMotor(Motor* m, float speed) {
+double DEADZONE = .05;
+
+void setMotor(Motor* m, double speed) {
     if(!m) {
         return;
     }
-    if(speed > 0) {
+    if(speed > DEADZONE) {
         gpioWrite(m->m1, 1);
         gpioWrite(m->m2, 0);
-    } else if(speed < 0) {
+    } else if(speed < -DEADZONE) {
         gpioWrite(m->m1, 0);
         gpioWrite(m->m2, 1);
+    }
+    else{
+        gpioWrite(m->m1, 0);
+        gpioWrite(m->m2, 0);
     }
     gpioPWM(m->pwm, fabs(speed) * gpioGetPWMrange(m->pwm));
 }

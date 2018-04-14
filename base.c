@@ -30,14 +30,14 @@ void printEncoders() {
     printf("\n");
 }
 
-void drive(float x, float y) {
+void drive(double x, double y) {
     setMotor(top, x);
     setMotor(bottom, -x);
     setMotor(left, y);
     setMotor(right, -y);
 }
 
-void spin(float speed) {
+void spin(double speed) {
     setMotor(top, speed);
     setMotor(bottom, speed);
     setMotor(left, speed);

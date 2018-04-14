@@ -7,7 +7,16 @@
 #include "enc.h"
 #include "pid.h"
 
-float test_speed = .5;
+double test_speed = .4;
+
+PID* controller;
+Motor* m;
+double dt = .01; // fastest possible callbacks with pigpio
+double maxSpeed = .6;
+
+Motor* motors[4];
+PID* pids[4];
+
 
 void cleanup() {
     signal(SIGINT, SIG_IGN);
@@ -29,15 +38,15 @@ void testIndividualMotor(Motor* m) {
 
 void testBase() {
     signal(SIGINT, cleanup);
-    Motor* top = createMotor(11, 25, 18, 7, 8);
+    Motor* top = createMotor(15, 14, 18, 27, 17);
     testIndividualMotor(top);
-    Motor* bottom = createMotor(17, 27, 22, 23, 24);
+    Motor* left = createMotor(10, 9, 11, 25, 8);
+    testIndividualMotor(left);
+    Motor* bottom = createMotor(16, 20, 21, 19, 26);
     testIndividualMotor(bottom);
-    // Motor* left = createMotor(10, 9, 11, 19, 26); // when initialized, prevents top from turning for some reason. check wiring maybe?
-    // testIndividualMotor(left);
-    // Motor* right = createMotor(5, 6, 13, 12, 16);
-    // testIndividualMotor(right);
-    initBase(top, bottom, NULL, NULL);
+    Motor* right = createMotor(5, 6, 13, 7, 1);
+    testIndividualMotor(right);
+    initBase(top, bottom, left, right);
     printEncoders();
     for(int i = 0; i < 4; ++i) {
         spin(test_speed);
@@ -50,42 +59,47 @@ void testBase() {
     cleanup();
 }
 
-PID* controller;
-Motor* m;
-float dt = .05;
-float maxSpeed = .6;
-
-void pidCB() {
-    float next = updatePID(controller, m->enc->pos, dt);
-    if(next > maxSpeed) {
-        next = maxSpeed;
-    } else if(next < -maxSpeed) {
-        next = -maxSpeed;
+void baseCB() {
+    for(int i = 0; i < 4; ++i) {
+        double next = updatePID(pids[i], motors[i]->enc->pos, dt);
+        if(next > maxSpeed) {
+            next = maxSpeed;
+        } else if(next < -maxSpeed) {
+            next = -maxSpeed;
+        }
+        // printf("Enc: %ld\t\tMotor: %f\n", m->enc->pos, next);
+        setMotor(motors[i], next);
     }
-    // printf("Enc: %ld\t\tMotor: %f\n", m->enc->pos, next);
-    setMotor(m, next);
 }
 
-int main(int argc, char* argv[]) {
+int main() {
     if (gpioInitialise() < 0) {
         return 1;
     }
-    controller = createPID(.01, .0001, .0005, "data.txt");
-    m = createMotor(17, 27, 22, 24, 23);
-    int setPoint = 0;
+    Motor* top = createMotor(15, 14, 18, 17, 27);
+    Motor* left = createMotor(10, 9, 11, 8, 25);
+    Motor* bottom = createMotor(16, 20, 21, 26, 19);
+    Motor* right = createMotor(5, 6, 13, 1, 7);
+    motors[0] = top;
+    motors[1] = bottom;
+    motors[2] = left;
+    motors[3] = right;
+    char* logs[] = {"top.txt", "bot.txt", "left.txt", "right.txt"};
+    for(int i = 0; i < 4; ++i) {
+        pids[i] = createPID(.01, .0003, .0005, logs[i]);
+        setPID(pids[i], 0);
+    }
 
-    testIndividualMotor(m);
-    m->enc->pos = 0;
-    setPID(controller, setPoint);
-    gpioSetTimerFunc(0, dt * 1000, pidCB);
+    gpioSetTimerFunc(0, dt * 1000, baseCB);
+    int setPoint = 0;
     while(setPoint != -1) {
-        setPID(controller, setPoint);
+        setPID(pids[0], setPoint);
+        setPID(pids[1], -setPoint);
         printf("Input next set point (-1 to exit): ");
         scanf("%d", &setPoint);
     }
-    stopMotor(m);
-    destroyMotor(m);
-    destroyPID(controller);
-    return 0;
+    for(int i=0;i<4;++i){
+        destroyMotor(motors[i]);
+        destroyPID(pids[i]);
+    }
 }
-
