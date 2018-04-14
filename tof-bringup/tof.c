@@ -7,7 +7,7 @@ const short __VL6180X_IDENTIFICATION_MODEL_REV_MINOR        = 0x0002;
 const short __VL6180X_IDENTIFICATION_MODULE_REV_MAJOR       = 0x0003;
 const short __VL6180X_IDENTIFICATION_MODULE_REV_MINOR       = 0x0004;
 const short __VL6180X_IDENTIFICATION_DATE                   = 0x0006;   //# 16bit value
-const short __VL6180X_IDENTIFICATION_TIME                   = 0x0008;   // # 16bit value
+const short __VL6180X_IDENTIFICATION_TIME                   = 0x0008;   //# 16bit value
 
 const short __VL6180X_SYSTEM_MODE_GPIO0                     = 0x0010;
 const short __VL6180X_SYSTEM_MODE_GPIO1                     = 0x0011;
@@ -69,7 +69,7 @@ int main() {
     gpioInitialise();
 
     if((sensor = i2cOpen(1, 0x29, 0)) < 0) {
-        printf("i2c open failed no 1, %i\n", sensor);
+        printf("i2c open failed no 1, handle: %i\n", sensor);
         return 1;
     }
     i2cReadByteData(sensor, __VL6180X_SYSTEM_FRESH_OUT_OF_RESET);
@@ -125,12 +125,12 @@ int main() {
 
     //writes to TOF register 0x212 (I2C_SLAVE_DEVICE_ADDRESS) 0x30 - new I2C addr
     int ec = (WriteByte(sensor, __VL6180X_I2C_SLAVE_DEVICE_ADDRESS, 0x30));
-    if( ec != 0) {
+    if(ec != 0) {
         printf("i2c change address failed; exit code: %i\n", ec);
         return ec;
     } //returns error -82, check why
     if((sensor = i2cOpen(1, 0x30, 0)) < 0) {
-        printf("i2c open failed no2, %i\n", sensor);
+        printf("i2c open failed no2, handle: %i\n", sensor);
         return 1;
     }
 
@@ -154,7 +154,8 @@ int main() {
 /**
  * Splits 16-bit register address into two bytes and writes address + data via I²C
  * LeoWhite (https://github.com/LeoWhite/OptimusPi/blob/master/Tests/VL6180Test.cpp)
- * repurposed to output status from write_device (Matthew Yu)
+ * repurposed to output status from write_device (Matthew Yu)\
+ * param: handle, device handle (generated from i2cOpen funct call)
  * param: reg, 2 byte register addr
  * param: data, 1 byte data to write
  * return: 0 if OK, otherwise PI_BAD_HANDLE, PI_BAD_PARAM, or PI_I2C_WRITE_FAILED.
@@ -162,7 +163,7 @@ int main() {
 int WriteByte(unsigned handle, uint16_t reg, char data)
 {
   char data_write[3];
-  printf("register: %i, data: %i\n", reg, data);
+  printf("register: %i, data: %s\n", reg, data);
   data_write[0] = (reg >> 8) & 0xFF;; // MSB of register address
   data_write[1] = reg & 0xFF; // LSB of register address
   data_write[2] = data & 0xFF;
