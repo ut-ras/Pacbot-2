@@ -11,7 +11,7 @@ To compile on a Raspberry Pi (1 or 2)
         $ gcc -o MPU6050_DCM_test ${PATH_I2CDEVLIB}RaspberryPi_bcm2835/MPU6050/examples/MPU6050_DCM_test.cpp \
          -I ${PATH_I2CDEVLIB}RaspberryPi_bcm2835/I2Cdev ${PATH_I2CDEVLIB}RaspberryPi_bcm2835/I2Cdev/I2Cdev.cpp \
          -I ${PATH_I2CDEVLIB}/Arduino/MPU6050/ ${PATH_I2CDEVLIB}/Arduino/MPU6050/MPU6050.cpp -l bcm2835 -l m
-    $ sudo ./MPU6050_DCM_test
+$ sudo ./MPU6050_DCM_test
 
 */
 
@@ -25,13 +25,14 @@ To compile on a Raspberry Pi (1 or 2)
 //#include "../../../Arduino/MPU6050/helper_3dmath.h"
 #include <math.h>
 #include <cstdint>
-#include <time.h>
 
 MPU6050 gyro;
 uint16_t packetSize;
 
 Quaternion q;
 float euler[3];
+
+
 
 void getGyroValues(int GPIO, int level, uint32_t tick) {
 
@@ -48,7 +49,7 @@ void getGyroValues(int GPIO, int level, uint32_t tick) {
 
         gyro.getFIFOBytes(fifoBuffer, packetSize);
 
-//        fifoCount -= packetSize;
+        fifoCount -= packetSize;
 
         gyro.dmpGetQuaternion(&q, fifoBuffer);
         gyro.dmpGetEuler(euler, &q);
@@ -58,10 +59,9 @@ void getGyroValues(int GPIO, int level, uint32_t tick) {
 }
 
 int gyroInit() {
-
-    gpioSetMode(22, PI_OUTPUT);
+    gpioInitialise();
+    gpioSetMode(22, PI_INPUT);
     gpioSetISRFunc(22, RISING_EDGE, 0, getGyroValues);
-
 
     printf("Starting DMP MPU6050 test\n");
     I2Cdev::initialize();
@@ -93,16 +93,16 @@ int gyroInit() {
     }
 
     packetSize = gyro.dmpGetFIFOPacketSize();
+
     return 0;
 }
-
-
 
 void printGyroValues() {
     printf("Euler: ");
     printf("X: %f         ", euler[0] * 180/M_PI);
     printf("Y: %f         ", euler[1] * 180/M_PI);
     printf("Z: %f\r", euler[2] * 180/M_PI);
+
 }
 
 int main(int argc, char **argv) {
@@ -110,11 +110,9 @@ int main(int argc, char **argv) {
     if (gyroInit())
         return 1;
 
-    while(true) {
+    while (true) {
         printGyroValues();
-        time_sleep(50);
     }
 
     return 0;
-
 }
