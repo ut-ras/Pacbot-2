@@ -1,27 +1,22 @@
 #ifndef PID_H
 #define PID_H
-#include <stdio.h>
+#include <fstream>
 
-struct PID {
+class PID {
     double goal;
-    double prev;
+    double last;
     double sum;
     double kP;
     double kI;
     double kD;
-    char* logName;
-    FILE* logFile;
+    bool log
+    std::ofstream logFile;
+public:
+    PID(double p, double i, double d): kP(p), kI(i), kD(d) {}
+    PID(double p, double i, double d, string logName);
+    ~PID();
+    set(double setPoint);
+    update(double current, double dt);
 };
-
-typedef struct PID PID;
-
-// Pass NULL as logName to not log
-PID* createPID(double p, double i, double d, char* logName);
-
-void setPID(PID* controller, double set);
-
-double updatePID(PID* controller, double current, double dt);
-
-void destroyPID(PID*);
 
 #endif
