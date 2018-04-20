@@ -2,7 +2,7 @@
 #include <iostream>
 #include <csignal>
 #include <cstdlib>
-#include "motor.h"
+#include "../inc/motor.h"
 
 using namespace std;
 

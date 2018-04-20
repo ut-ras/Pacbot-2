@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <pigpio.h>
-#include "enc.h"
+#include "../inc/enc.h"
 
 void _cb(int gpio, int level, uint32_t tick, void* user) {
     Enc* enc = (Enc*)user;

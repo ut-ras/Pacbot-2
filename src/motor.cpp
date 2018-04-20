@@ -1,6 +1,6 @@
 #include <math.h>
 #include <pigpio.h>
-#include "motor.h"
+#include "../inc/motor.h"
 
 const double DEADZONE = .05;
 const int FREQENCY = 440;

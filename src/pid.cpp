@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <algorithm>
-#include "pid.h"
+#include "../inc/pid.h"
 
 #define MAX_SPEED (.4)
 #define MAX_SUM (1000)
