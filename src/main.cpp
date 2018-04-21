@@ -35,7 +35,6 @@ void controlCB() {
         // more easily regulated acceleration
         motors[i]->set(max(min(gains[i], maxSpeed), -maxSpeed));
     }
-    cout << gains[0] <<endl;
 }
 
 void moveStraight(int dist, axis dir) {
@@ -96,9 +95,9 @@ int main() {
     // rotationControl = new PID(p, i, d);
     // alignmentControl = new PID(p, i, d);
     enableCB(loopSpeed);
-    // // testing pid with a single motor
-    // while(true){
-    //     int setPoint = 0;
+    // testing pid with a single motor
+    // int setPoint = 0;
+    // while(setPoint != -1){
     //     cout << "input setpoint: ";
     //     cin >> setPoint;
     //     linearControl[0]->set(setPoint);
