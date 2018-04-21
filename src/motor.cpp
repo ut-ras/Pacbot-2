@@ -1,9 +1,11 @@
-#include <math.h>
 #include <pigpio.h>
+#include <cmath>
 #include "../inc/motor.h"
 
-const double DEADZONE = .05;
-const int FREQENCY = 440;
+using namespace std;
+
+const double DEADZONE = .05; // for speed not encoder ticks
+const int FREQENCY = 440; // gotto make sure our motors are in tune
 
 L298N::L298N(int m1pin, int m2pin, int pwmpin, int encA, int encB)
     : Motor(encA, encB), m1(m1pin), m2(m2pin), pwm(pwmpin) {
@@ -25,7 +27,7 @@ void L298N::set(double speed) {
         gpioWrite(m1, 0);
         gpioWrite(m2, 0);
     }
-    gpioPWM(pwm, fabs(speed) * gpioGetPWMrange(pwm));
+    gpioPWM(pwm, abs(speed) * gpioGetPWMrange(pwm));
 }
 
 void L298N::stop() {
@@ -60,8 +62,8 @@ void DRV::set(double speed) {
         stop();
         return;
     }
-    gpioPWM(next1, fabs(speed) * gpioGetPWMrange(pwm1));
-    gpioPWM(next2, fabs(speed) * gpioGetPWMrange(pwm2));
+    gpioPWM(next1, abs(speed) * gpioGetPWMrange(pwm1));
+    gpioPWM(next2, 0);
 }
 
 void DRV::stop() {

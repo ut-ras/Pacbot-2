@@ -7,6 +7,7 @@
 
 PID::PID(double p, double i, double d, std::string logName) : kP(p), kI(i),
     kD(d) {
+    set(0);
     logFile.open(logName.c_str(),
                  std::fstream::app); // change to "out" to overwrite
 }

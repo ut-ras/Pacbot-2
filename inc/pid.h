@@ -9,14 +9,15 @@ class PID {
     double kP;
     double kI;
     double kD;
-    bool log;
     std::ofstream logFile;
 public:
-    PID(double p, double i, double d): kP(p), kI(i), kD(d) {}
+    PID(double p, double i, double d): kP(p), kI(i), kD(d) {
+        set(0);
+    }
     PID(double p, double i, double d, std::string logName);
     ~PID();
     void set(double setPoint);
-    double update(double current, double dt);
+    double update(double current, double dt); // dt in seconds
 };
 
 #endif
