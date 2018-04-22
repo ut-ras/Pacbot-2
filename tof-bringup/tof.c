@@ -65,10 +65,38 @@ const short __VL6180X_INTERLEAVED_MODE_ENABLE               = 0x02A3;
 int WriteByte(unsigned, uint16_t, char);
 char ReadByte(unsigned,uint16_t);
 int sensor;
+int sensor1;
+int sensor2;
+int sensor3;
+int sensor4;
 int main() {
     gpioInitialise();
    //must open address that tof is currently on
-    sensor = i2cOpen(1,0x28,0);
+   for(int i=1;i<4;i++)
+   {
+     //enable one sensor at a time
+     if(i==1){
+       gpioWrite(12,1);
+       gpioWrite(23,0);
+       gpioWrite(24,0);
+       //gpioWrite(anotherPin,0)
+     } else if(i==2){
+       gpioWrite(12,0);
+       gpioWrite(23,1);
+       gpioWrite(24,0);
+       //gpioWrite(anotherPin,0)
+     } else if(i==3){
+       gpioWrite(12,0);
+       gpioWrite(23,0);
+       gpioWrite(24,1);
+       //gpioWrite(anotherPin,0)
+     }/*else if(i==3){
+       gpioWrite(12,0);
+       gpioWrite(23,0);
+       gpioWrite(24,0);
+       //gpioWrite(anotherPin,1)
+     }*/
+    sensor = i2cOpen(1,0x29,0);
     if(sensor < 0) {
         printf("i2c open failed no 1, %i\n", sensor);
         return 1;
@@ -125,6 +153,37 @@ int main() {
     WriteByte(sensor,0x003e, 0x31);
     WriteByte(sensor,0x0014, 0x24);
 
+    WriteByte(sensor, __VL6180X_I2C_SLAVE_DEVICE_ADDRESS, 0x29+i);
+i2cClose(sensor);  
+}
+
+//enables all sensors
+  gpioWrite(12,1);
+  gpioWrite(23,1);
+  gpioWrite(24,1);
+  //gpioWrite(anotherPin,1)
+
+  //get handlers for all sensors
+  sensor1 = i2cOpen(1,0x2A,0);
+ if(sensor1 < 0) {
+        printf("i2c open failed no 1, %i\n", sensor1);
+        return 1;
+    }
+ 
+ sensor2 = i2cOpen(1,0x2B,0);
+ if(sensor2 < 0) {
+        printf("i2c open failed no 1, %i\n", sensor2);
+        return 1;
+    }
+
+  sensor3 = i2cOpen(1,0x2C,0);
+ if(sensor3 < 0) {
+        printf("i2c open failed no 1, %i\n", sensor3);
+        return 1;
+    }
+
+  //sensor4 = i2cOpen(1,0x2C,0);
+
     //setting: set GPIO I2C addresses
     //process: device with i2c open (on addr 0x29)
     //then with handle obtained write to address 0x212 new address
@@ -142,34 +201,52 @@ int main() {
    // }
 
     int reading =1;
-    while(1) {
+    int reading1 = 1;
+    int reading2 = 1;
+int i=0;
+    while(i<100) {i++;
  char status;
   char range_status;
-  
+
 /*  // check the status
   status = ReadByte(0x04f);
   range_status = status & 0x07;
-  
+
   // wait for new measurement ready status
   while (range_status != 0x04) {
     status = ReadByte(0x04f);
     range_status = status & 0x07;
    // usleep(1000); // (can be removed)
-  }	
+  }
   range=ReadByte(0x062);
   printf("%04dmm\n", range);*/
-	
+
         // wait until ready
-        while(!ReadByte(sensor, 0x004d) & (1<<0));
-        // start measurment
-        WriteByte(sensor, 0x0018, 0x01);
-        while(!ReadByte(sensor, 0x004f) & (1<<2));
-        reading = ReadByte(sensor, 0x0062);
-        printf("%04dmm\n", reading);
+        while(!ReadByte(sensor1, 0x004d) & (1<<0));
+        // start measurment 1
+        WriteByte(sensor1, 0x0018, 0x01);
+        while(!ReadByte(sensor1, 0x004f) & (1<<2));
+        reading = ReadByte(sensor1, 0x0062);
+        //printf("%04dmm\n", reading);
+        while(!ReadByte(sensor2, 0x004d) & (1<<0));
+        // start measurment 2
+        WriteByte(sensor2, 0x0018, 0x01);
+        while(!ReadByte(sensor2, 0x004f) & (1<<2));
+        reading1 = ReadByte(sensor2, 0x0062);
+        //printf("%04dmm\n", reading);
+        while(!ReadByte(sensor3, 0x004d) & (1<<0));
+        // start measurment 3
+        WriteByte(sensor3, 0x0018, 0x01);
+        while(!ReadByte(sensor3, 0x004f) & (1<<2));
+        reading2 = ReadByte(sensor3, 0x0062);
+        printf("%04dmm, %04dmm, %04dmm\n", reading, reading1, reading2);
         time_sleep(.5);
     }
 
-    i2cClose(sensor);
+//    i2cClose(sensor);
+i2cClose(sensor1);
+i2cClose(sensor2);
+i2cClose(sensor3);
     return 0;
 }
 
@@ -198,7 +275,7 @@ char ReadByte(unsigned handle,uint16_t reg) {
   data_write[1] = reg & 0xFF; // LSB of register address
   i2cWriteDevice(handle, data_write, 2);
   i2cReadDevice(handle, data_read, 1);
-  
+
   return data_read[0];
 }
 
