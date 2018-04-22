@@ -273,8 +273,7 @@ char ReadByte(unsigned handle,uint16_t reg) {
   char data_read[1];
   data_write[0] = (reg >> 8) & 0xFF; // MSB of register address
   data_write[1] = reg & 0xFF; // LSB of register address
-  i2cWriteDevice(handle, data_write, 2);
-  i2cReadDevice(handle, data_read, 1);
+  i2cWriteReadRS(handle, data_write,2,data_read,1);
 
   return data_read[0];
 }
