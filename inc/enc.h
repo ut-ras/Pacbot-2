@@ -8,12 +8,8 @@ struct Enc {
     int levB;
     int lastGpio;
     long pos;
+    Enc(int apin, int bpin);
+    ~Enc();
 };
-
-typedef struct Enc Enc;
-
-Enc* createEnc(int encA, int encB);
-
-void destroyEnc(Enc* enc);
 
 #endif

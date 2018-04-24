@@ -1,4 +1,6 @@
-# Created by https://www.gitignore.io/api/c,linux,python
+# log files
+*.txt
+*.axf
 
 ### C ###
 # Prerequisites
