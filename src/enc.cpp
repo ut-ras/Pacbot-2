@@ -1,4 +1,3 @@
-#include <stdlib.h>
 #include <pigpio.h>
 #include "../inc/enc.h"
 
