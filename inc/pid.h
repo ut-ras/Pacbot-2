@@ -18,6 +18,9 @@ public:
     ~PID();
     void set(double setPoint);
     double update(double current, double dt); // dt in seconds
+    double getErr() {
+        return last;
+    }
 };
 
 #endif
