@@ -1,13 +1,14 @@
 #include <pigpio.h>
 #include <stdio.h>
+#include "I2Cdev.h"
 
 const short __VL6180X_IDENTIFICATION_MODEL_ID               = 0x0000;
 const short __VL6180X_IDENTIFICATION_MODEL_REV_MAJOR        = 0x0001;
 const short __VL6180X_IDENTIFICATION_MODEL_REV_MINOR        = 0x0002;
 const short __VL6180X_IDENTIFICATION_MODULE_REV_MAJOR       = 0x0003;
 const short __VL6180X_IDENTIFICATION_MODULE_REV_MINOR       = 0x0004;
-const short __VL6180X_IDENTIFICATION_DATE                   = 0x0006;   //# 16bit value
-const short __VL6180X_IDENTIFICATION_TIME                   = 0x0008;   // # 16bit value
+const short __VL6180X_IDENTIFICATION_DATE                   = 0x0006;
+const short __VL6180X_IDENTIFICATION_TIME                   = 0x0008;
 
 const short __VL6180X_SYSTEM_MODE_GPIO0                     = 0x0010;
 const short __VL6180X_SYSTEM_MODE_GPIO1                     = 0x0011;
@@ -62,97 +63,91 @@ const short __VL6180X_FIRMWARE_RESULT_SCALER                = 0x0120;
 const short __VL6180X_I2C_SLAVE_DEVICE_ADDRESS              = 0x0212;
 const short __VL6180X_INTERLEAVED_MODE_ENABLE               = 0x02A3;
 
-int WriteByte(unsigned, uint16_t, char);
+int enablePins[4] = {12, 23, 24, 24};
+int sensors[4] = {0x29, 0x2a, 0x2b, 0x2c};
 
-int sensor;
-int main() {
-    gpioInitialise();
-    sensor = i2cOpen(1,0x31,0);
-    if(sensor < 0) {
-        printf("i2c open failed no 1, %i\n", sensor);
-        return 1;
+// first list is addresses, second is values
+int initPairs[2][29] = {
+    {
+        0x208, 0x96, 0x97, 0xe3, 0xe4, 0xe5, 0xe6, 0xe7, 0xf5, 0xd9,
+        0xdb, 0xdc, 0xdd, 0x9f, 0xa3, 0xb7, 0xbb, 0xb2, 0xca, 0x198,
+        0x1b0, 0x1ad, 0xff, 0x100, 0x199, 0x1a6, 0x1ac, 0x1a7, 0x30
+    },
+    {
+        0x01, 0x00, 0xfd, 0x00, 0x04, 0x02, 0x01, 0x03, 0x02, 0x05,
+        0xce, 0x03, 0xf8, 0x00, 0x3c, 0x00, 0x3c, 0x09, 0x09, 0x01,
+        0x17, 0x00, 0x05, 0x05, 0x05, 0x1b, 0x3e, 0x1f, 0x00
     }
-    i2cReadByteData(sensor, __VL6180X_SYSTEM_FRESH_OUT_OF_RESET);
+};
 
-    // proprietary setup stuffteByte(sensor, 0x00db, 0xce);
-    WriteByte(sensor, 0x00dc, 0x03);
-    WriteByte(sensor, 0x00dd, 0xf8);
-    WriteByte(sensor, 0x009f, 0x00);
-    WriteByte(sensor, 0x00a3, 0x3c);
-    WriteByte(sensor, 0x00b7, 0x00);
-    WriteByte(sensor, 0x00bb, 0x3c);
-    WriteByte(sensor, 0x00b2, 0x09);
-    WriteByte(sensor, 0x00ca, 0x09);
-    WriteByte(sensor, 0x0198, 0x01);
-    WriteByte(sensor, 0x01b0, 0x17);
-    WriteByte(sensor, 0x01ad, 0x00);
-    WriteByte(sensor, 0x00ff, 0x05);
-    WriteByte(sensor, 0x0100, 0x05);
-    WriteByte(sensor, 0x0199, 0x05);
-    WriteByte(sensor, 0x01a6, 0x1b);
-    WriteByte(sensor, 0x01ac, 0x3e);
-    WriteByte(sensor, 0x01a7, 0x1f);
-    WriteByte(sensor, 0x0030, 0x00);
+int WriteByte(unsigned addr, uint16_t reg, uint8_t data) {
+    //printf("register: %i, data: %i\n", reg, data);
+    return I2Cdev::writeBytes(addr, reg, 1, &data);
 
-    // recommended setup stuff
-    WriteByte(sensor, __VL6180X_SYSTEM_MODE_GPIO1, 0x10);
-    WriteByte(sensor, __VL6180X_READOUT_AVERAGING_SAMPLE_PERIOD, 0x30);
-    WriteByte(sensor, __VL6180X_SYSALS_ANALOGUE_GAIN, 0x46);
-    WriteByte(sensor, __VL6180X_SYSRANGE_VHV_REPEAT_RATE, 0xff);
-    WriteByte(sensor, __VL6180X_SYSALS_INTEGRATION_PERIOD, 0x63);
-    WriteByte(sensor, __VL6180X_SYSRANGE_VHV_RECALIBRATE, 0x01);
-
-    // optional settings
-    // todo: add more settings
-
-
-    //setting: set GPIO I2C addresses
-    //process: device with i2c open (on addr 0x29)
-    //then with handle obtained write to address 0x212 new address
-    //reopen with i2c open?
-    
-    //writes to TOF register 0x212 (I2C_SLAVE_DEVICE_ADDRESS) 0x30 - new I2C addr
-    int ec = (WriteByte(sensor, __VL6180X_I2C_SLAVE_DEVICE_ADDRESS, 0x31));
-    if( ec != 0) {
-        printf("i2c change address failed; exit code: %i\n", ec);
-        return ec;
-    }
-    if((sensor = i2cOpen(1, 0x31, 0)) < 0) {
-        printf("i2c open failed no2, %i\n", sensor);
-        return 1;
-    }
-
-    int reading =1;
-    while(1) {
-        // wait until ready
-        while(!i2cReadByteData(sensor, 0x004d) & (1<<0));
-        // start measurment
-        WriteByte(sensor, 0x0018, 0x01);
-        while(!i2cReadByteData(sensor, 0x004f) & (1<<2));
-        reading = i2cReadByteData(sensor, 0x0062);
-        printf("%04dmm\n", reading);
-        time_sleep(.5);
-    }
-
-    i2cClose(sensor);
-    return 0;
 }
 
-/**
- * Splits 16-bit register address into two bytes and writes address + data via I²C
- * LeoWhite (https://github.com/LeoWhite/OptimusPi/blob/master/Tests/VL6180Test.cpp)
- * repurposed to output status from write_device (Matthew Yu)
- * param: reg, 2 byte register addr
- * param: data, 1 byte data to write
- * return: 0 if OK, otherwise PI_BAD_HANDLE, PI_BAD_PARAM, or PI_I2C_WRITE_FAILED.
- **/
-int WriteByte(unsigned handle, uint16_t reg, char data)
-{
-  char data_write[3];
-  printf("register: %i, data: %i\n", reg, data);
-  data_write[0] = (reg >> 8) & 0xFF;; // MSB of register address
-  data_write[1] = reg & 0xFF; // LSB of register address
-  data_write[2] = data & 0xFF;
-  return i2cWriteDevice(handle, data_write, 3);
+char ReadByte(unsigned addr, uint16_t reg) {
+    uint8_t data_read;
+    I2Cdev::readBytes(addr, reg, 1, &data_read);
+    return data_read;
+}
+
+//reinitialize all distance sensors to address 0x29
+void resetAddr() {
+    for(int i = 0; i < 4; ++i) {
+        gpioWrite(enablePins[i], 1);
+    }
+    for(int i = 0; i < 4; ++i) {
+        WriteByte(sensors[i], __VL6180X_I2C_SLAVE_DEVICE_ADDRESS, 0x29);
+    }
+}
+
+void initSensor(sensor) {
+    //enable one sensor at a time
+    printf("Sensor %d enabling\n", sensor);
+    gpioWrite(enablePins[sensor], 1);
+    //i2cReadByteData(sensor, __VL6180X_SYSTEM_FRESH_OUT_OF_RESET);
+    // proprietary setup stuff
+    for(int j = 0; j < 29; ++j) {
+        WriteByte(0x29, initPairs[0][sensor], initPairs[1][sensor]);
+    }
+    // recommended setup stuff
+    // WriteByte(sensor, __VL6180X_SYSTEM_MODE_GPIO1, 0x10);
+    WriteByte(0x29, __VL6180X_READOUT_AVERAGING_SAMPLE_PERIOD, 0x30);
+    WriteByte(0x29, __VL6180X_SYSALS_ANALOGUE_GAIN, 0x46);
+    WriteByte(0x29, __VL6180X_SYSRANGE_VHV_REPEAT_RATE, 0xff);
+    WriteByte(0x29, __VL6180X_SYSALS_INTEGRATION_PERIOD, 0x63);
+    WriteByte(0x29, __VL6180X_SYSRANGE_VHV_RECALIBRATE, 0x01);
+    // optional settings todo: add more settings
+    WriteByte(0x29, 0x001b, 0x09);
+    WriteByte(0x29, 0x003e, 0x31);
+    WriteByte(0x29, 0x0014, 0x24);
+    // assign new register
+    WriteByte(0x29, __VL6180X_I2C_SLAVE_DEVICE_ADDRESS, sensors[sensor]);
+    printf("finished sensor %d\n", i);
+}
+
+int main() {
+    gpioInitialise();
+    I2Cdev::initialize();
+    I2Cdev::enable(true);
+    resetAddr();
+    //must open address that tof is currently on
+    for(int i = 0; i < 4; ++i) {
+        initSensor(i);
+    }
+    while(1) {
+        for(int i = 0; i < 4; ++i) {
+            // wait until ready
+            //while(!ReadByte(sensor1, 0x004d) & (1<<0));
+            // start measurment 1
+            WriteByte(sensors[i], 0x0018, 0x01);
+            //while(!ReadByte(sensor1, 0x004f) & (1<<2));
+            int reading = ReadByte(sensors[i], 0x0062);
+            printf("%04dmm\t", reading);
+        }
+        printf("\n");
+    }
+    return 0;
 }
 
