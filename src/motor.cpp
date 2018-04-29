@@ -68,8 +68,8 @@ void DRV::set(double speed) {
 
 void DRV::stop() {
     //todo: try 0's for sleep instead of break
-    gpioWrite(pwm1, 1);
-    gpioWrite(pwm2, 1);
+    gpioWrite(pwm1, 0);
+    gpioWrite(pwm2, 0);
 }
 
 DRV::~DRV() {
